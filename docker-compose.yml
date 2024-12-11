@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app                # Mount the current directory into the container
+      - /app/tmp              # Temporary volume to avoid caching issues
+    ports:
+      - "8080:8080"           # Map port 8080
+    command: ["air"]          # Use Air for live reloading
+    container_name: my-go-docker-air
