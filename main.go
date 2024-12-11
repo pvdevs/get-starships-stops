@@ -2,14 +2,20 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"log"
+
+	"github.com/your-username/get-starships-stops/logic"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello world! \n")
-}
-
 func main() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	var input string
+	fmt.Print("Enter distance in mega lights (MGLT): ")
+	fmt.Scanln(&input)
+
+	distance, err := logic.ParseDistance(input)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	fmt.Printf("Valid distance entered: %d MGLT\n", distance)
 }
