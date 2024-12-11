@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/your-username/get-starships-stops/logic"
+	"github.com/pvdevs/get-starships-stops/logic"
 )
 
 func main() {

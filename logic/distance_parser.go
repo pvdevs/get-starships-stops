@@ -5,16 +5,22 @@ import (
 	"strconv"
 )
 
-// Predefined errors
 var (
-	ErrInvalidInput = errors.New("invalid input: must be a positive integer")
+	ErrNotPositiveInteger = errors.New("input must be a positive integer")
+	ErrInputTooLarge      = errors.New("input is too large to process")
 )
 
-// ParseDistance parses the input and returns the distance in MGLT or an error
 func ParseDistance(input string) (int64, error) {
 	distance, err := strconv.ParseInt(input, 10, 64)
-	if err != nil || distance < 0 {
-		return 0, ErrInvalidInput
+	if err != nil {
+		// Check if the error is due to an overflow
+		if errors.Is(err, strconv.ErrRange) {
+			return 0, ErrInputTooLarge
+		}
+		return 0, ErrNotPositiveInteger
+	}
+	if distance < 0 {
+		return 0, ErrNotPositiveInteger
 	}
 	return distance, nil
 }
