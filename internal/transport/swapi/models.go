@@ -22,6 +22,7 @@ type APIStarship struct {
 	URL                  string   `json:"url"`
 }
 
+// StarshipsResponse represents the paginated response from the SWAPI starships endpoint.
 type StarshipsResponse struct {
 	Count    int           `json:"count"`
 	Next     string        `json:"next"`

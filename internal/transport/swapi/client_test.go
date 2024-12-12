@@ -2,6 +2,7 @@ package swapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,19 +12,13 @@ import (
 )
 
 // TestClient_GetStarships tests the basic functionality of the GetStarships method.
-// It verifies different response scenarios from the SWAPI API including:
-// - Successful responses with starship data
-// - Server errors
-// - Invalid JSON responses
-// - Empty result sets
 func TestClient_GetStarships(t *testing.T) {
-	// Define test cases using table-driven test pattern
 	tests := []struct {
-		name         string // Description of the test case
-		mockResponse string // JSON response the mock server should return
-		mockStatus   int    // HTTP status code the mock server should return
-		wantErr      bool   // Whether we expect an error
-		wantCount    int    // Expected number of starships in the response
+		name         string
+		mockResponse string
+		mockStatus   int
+		wantErr      bool
+		wantCount    int
 	}{
 		{
 			name:         "successful response",
@@ -55,30 +50,25 @@ func TestClient_GetStarships(t *testing.T) {
 		},
 	}
 
-	// Run each test case
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a test server that returns our mock response
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.mockStatus)
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(tt.mockResponse))
 			}))
-			defer server.Close() // Ensure server is closed after test
+			defer server.Close()
 
-			// Initialize client with test server URL
-			client := NewClient(server.URL)
-
-			// Execute the method being tested
+			client := NewClient(ClientConfig{
+				BaseURL: server.URL,
+			})
 			starships, err := client.GetStarships(context.Background())
 
-			// Verify error expectations
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetStarships() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			// Verify result count if no error occurred
 			if err == nil && len(starships) != tt.wantCount {
 				t.Errorf("GetStarships() got %d starships, want %d", len(starships), tt.wantCount)
 			}
@@ -86,33 +76,25 @@ func TestClient_GetStarships(t *testing.T) {
 	}
 }
 
-// TestClient_handlePagination specifically tests the client's ability to handle
-// paginated responses from the SWAPI API. It verifies that:
-// - The client correctly follows the "next" URL
-// - All starships from all pages are collected
-// - The starships are returned in the correct order
+// TestClient_handlePagination tests the client's pagination handling.
 func TestClient_handlePagination(t *testing.T) {
 	currentPage := 0
-	var responses []string // Holds our mock responses for each page
+	var responses []string
 
-	// Create test server that will serve different responses based on the page number
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(responses[currentPage]))
-		currentPage++ // Increment to serve next page on next request
+		currentPage++
 	}))
 	defer server.Close()
 
-	// Define paginated responses after server creation so we can use its URL
 	responses = []string{
-		// First page with link to second page
 		fmt.Sprintf(`{
             "count": 2,
             "next": "%s/api/starships/?page=2",
             "previous": null,
             "results": [{"name":"X-wing","MGLT":"100","consumables":"1 week"}]
         }`, server.URL),
-		// Second (final) page
 		`{
             "count": 2,
             "next": null,
@@ -121,21 +103,20 @@ func TestClient_handlePagination(t *testing.T) {
         }`,
 	}
 
-	client := NewClient(server.URL)
+	client := NewClient(ClientConfig{
+		BaseURL: server.URL,
+	})
 	starships, err := client.GetStarships(context.Background())
 
-	// Verify no errors occurred
 	if err != nil {
 		t.Errorf("GetStarships() error = %v", err)
 		return
 	}
 
-	// Verify total number of starships
 	if len(starships) != 2 {
 		t.Errorf("Expected 2 starships, got %d", len(starships))
 	}
 
-	// Verify starships are in correct order
 	expectedNames := []string{"X-wing", "Y-wing"}
 	for i, ship := range starships {
 		if ship.Name != expectedNames[i] {
@@ -150,7 +131,7 @@ func TestAPIToDomainStarship(t *testing.T) {
 		name    string
 		input   APIStarship
 		want    domain.Starship
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "valid starship",
@@ -164,7 +145,25 @@ func TestAPIToDomainStarship(t *testing.T) {
 				MGLT:        100,
 				Consumables: "1 week",
 			},
-			wantErr: false,
+			wantErr: nil,
+		},
+		{
+			name: "unknown MGLT",
+			input: APIStarship{
+				Name:        "Unknown Ship",
+				MGLT:        "unknown",
+				Consumables: "1 month",
+			},
+			wantErr: ErrSkipShip,
+		},
+		{
+			name: "n/a MGLT",
+			input: APIStarship{
+				Name:        "NA Ship",
+				MGLT:        "n/a",
+				Consumables: "1 month",
+			},
+			wantErr: ErrSkipShip,
 		},
 		{
 			name: "invalid MGLT number",
@@ -173,16 +172,7 @@ func TestAPIToDomainStarship(t *testing.T) {
 				MGLT:        "not a number",
 				Consumables: "1 month",
 			},
-			wantErr: true,
-		},
-		{
-			name: "empty MGLT",
-			input: APIStarship{
-				Name:        "Empty Ship",
-				MGLT:        "",
-				Consumables: "1 month",
-			},
-			wantErr: true,
+			wantErr: fmt.Errorf("invalid MGLT format"),
 		},
 	}
 
@@ -190,9 +180,13 @@ func TestAPIToDomainStarship(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := apiToDomainStarship(tt.input)
 
-			if tt.wantErr {
+			if tt.wantErr != nil {
 				if err == nil {
 					t.Error("apiToDomainStarship() expected error, got nil")
+					return
+				}
+				if tt.wantErr == ErrSkipShip && !errors.Is(err, ErrSkipShip) {
+					t.Errorf("expected ErrSkipShip, got %v", err)
 				}
 				return
 			}

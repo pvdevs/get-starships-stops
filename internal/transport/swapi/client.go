@@ -3,6 +3,7 @@ package swapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,24 +12,36 @@ import (
 	"github.com/pvdevs/get-starships-stops/internal/domain"
 )
 
+var (
+	ErrSkipShip = fmt.Errorf("skip ship")
+)
+
 // Client handles all communication with the SWAPI API
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
 }
 
+type ClientConfig struct {
+	BaseURL string
+	Timeout time.Duration
+}
+
 // NewClient creates a new SWAPI client instance
-func NewClient(baseURL string) *Client {
+func NewClient(config ClientConfig) *Client {
+	if config.Timeout == 0 {
+		config.Timeout = 10 * time.Second // default timeout
+	}
 	return &Client{
-		baseURL: baseURL,
+		baseURL: config.BaseURL,
 		httpClient: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: config.Timeout,
 		},
 	}
 }
 
-// // GetStarships fetches and returns all starships from the SWAPI API
-// // Returns domain.Starship objects instead of API responses
+// GetStarships fetches and returns all starships from the SWAPI API
+// Returns domain.Starship objects instead of API responses
 func (c *Client) GetStarships(ctx context.Context) ([]domain.Starship, error) {
 	var allStarships []domain.Starship
 	nextURL := fmt.Sprintf("%s/api/starships/", c.baseURL)
@@ -42,9 +55,10 @@ func (c *Client) GetStarships(ctx context.Context) ([]domain.Starship, error) {
 		for _, apiShip := range response.Results {
 			ship, err := apiToDomainStarship(apiShip)
 			if err != nil {
-				if err.Error() != "skip" { // Only log real errors, not skipped ships
-					fmt.Printf("Warning: could not process ship %s: %v\n", apiShip.Name, err)
+				if errors.Is(err, ErrSkipShip) {
+					continue // Skip ship silently
 				}
+				fmt.Printf("Warning: could not process ship %s: %v\n", apiShip.Name, err)
 				continue
 			}
 			allStarships = append(allStarships, ship)
@@ -60,12 +74,12 @@ func (c *Client) GetStarships(ctx context.Context) ([]domain.Starship, error) {
 func apiToDomainStarship(apiShip APIStarship) (domain.Starship, error) {
 	// Skip ships with non-numeric MGLT values
 	if apiShip.MGLT == "unknown" || apiShip.MGLT == "n/a" {
-		return domain.Starship{}, fmt.Errorf("skip")
+		return domain.Starship{}, ErrSkipShip
 	}
 
 	mglt, err := strconv.Atoi(apiShip.MGLT)
 	if err != nil {
-		return domain.Starship{}, fmt.Errorf("invalid MGLT format")
+		return domain.Starship{}, fmt.Errorf("parse MGLT '%s': %w", apiShip.MGLT, err)
 	}
 
 	return domain.Starship{
