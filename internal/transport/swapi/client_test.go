@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/pvdevs/get-starships-stops/internal/domain"
 )
 
 // TestClient_GetStarships tests the basic functionality of the GetStarships method.
@@ -139,5 +141,70 @@ func TestClient_handlePagination(t *testing.T) {
 		if ship.Name != expectedNames[i] {
 			t.Errorf("Expected starship name %s, got %s", expectedNames[i], ship.Name)
 		}
+	}
+}
+
+// TestAPIToDomainStarship tests the conversion from API response to domain model
+func TestAPIToDomainStarship(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   APIStarship
+		want    domain.Starship
+		wantErr bool
+	}{
+		{
+			name: "valid starship",
+			input: APIStarship{
+				Name:        "X-wing",
+				MGLT:        "100",
+				Consumables: "1 week",
+			},
+			want: domain.Starship{
+				Name:        "X-wing",
+				MGLT:        100,
+				Consumables: "1 week",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid MGLT number",
+			input: APIStarship{
+				Name:        "Broken Ship",
+				MGLT:        "not a number",
+				Consumables: "1 month",
+			},
+			wantErr: true,
+		},
+		{
+			name: "empty MGLT",
+			input: APIStarship{
+				Name:        "Empty Ship",
+				MGLT:        "",
+				Consumables: "1 month",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := apiToDomainStarship(tt.input)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("apiToDomainStarship() expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("apiToDomainStarship() unexpected error: %v", err)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("apiToDomainStarship() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
