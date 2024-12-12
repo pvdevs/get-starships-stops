@@ -1,4 +1,4 @@
-package logic
+package parser
 
 import (
 	"errors"
