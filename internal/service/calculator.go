@@ -1,4 +1,3 @@
-// Package service provides the business logic for calculating starship stops
 package service
 
 import (
@@ -10,9 +9,14 @@ import (
 )
 
 // StarshipClient defines the interface for fetching starship data
-// This allows us to easily mock the client in tests
+// This allows to easily mock the client in tests
 type StarshipClient interface {
 	GetStarships(ctx context.Context) ([]domain.Starship, error)
+}
+
+// CalculatorService defines the interface for calculating starship stops
+type CalculatorService interface {
+	CalculateStops(ctx context.Context, distance int64) (map[string]int, error)
 }
 
 // Calculator handles the business logic for calculating required stops
