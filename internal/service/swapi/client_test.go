@@ -11,14 +11,19 @@ import (
 	"github.com/pvdevs/get-starships-stops/internal/domain"
 )
 
-// TestClient_GetStarships tests the basic functionality of the GetStarships method.
+// TestClient_GetStarships verifies the basic functionality of the GetStarships method.
+// It tests scenarios including:
+// - Successful API responses with starship data
+// - Server errors
+// - Invalid JSON responses
+// - Empty API responses
 func TestClient_GetStarships(t *testing.T) {
 	tests := []struct {
-		name         string
-		mockResponse string
-		mockStatus   int
-		wantErr      bool
-		wantCount    int
+		name         string // Test case description
+		mockResponse string // Mocked API response
+		mockStatus   int    // Mocked HTTP status code
+		wantErr      bool   // Whether an error is expected
+		wantCount    int    // Expected number of starships
 	}{
 		{
 			name:         "successful response",
@@ -76,7 +81,11 @@ func TestClient_GetStarships(t *testing.T) {
 	}
 }
 
-// TestClient_handlePagination tests the client's pagination handling.
+// TestClient_handlePagination verifies the client's ability to handle paginated API responses.
+// It ensures that:
+// - The "next" URL is followed correctly
+// - All starships from all pages are collected
+// - The starships are returned in the correct order
 func TestClient_handlePagination(t *testing.T) {
 	currentPage := 0
 	var responses []string
@@ -125,13 +134,17 @@ func TestClient_handlePagination(t *testing.T) {
 	}
 }
 
-// TestAPIToDomainStarship tests the conversion from API response to domain model
+// TestAPIToDomainStarship verifies the conversion of APIStarship to domain.Starship.
+// It tests cases including:
+// - Valid starship data
+// - Skipping ships with invalid MGLT values
+// - Handling invalid MGLT formats
 func TestAPIToDomainStarship(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   APIStarship
-		want    domain.Starship
-		wantErr error
+		name    string          // Test case description
+		input   APIStarship     // Input APIStarship data
+		want    domain.Starship // Expected domain.Starship result
+		wantErr error           // Expected error (if any)
 	}{
 		{
 			name: "valid starship",
