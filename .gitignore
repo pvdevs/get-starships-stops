@@ -1,0 +1,8 @@
+# Go modules
+go.sum
+
+# Temporary files
+tmp/
+
+# Logs
+*.log
