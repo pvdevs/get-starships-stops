@@ -72,7 +72,7 @@ Ensure you have the following installed:
 
 2. **Start the application in development mode**:
     ```bash
-    docker-compose up
+    docker compose up --build -d
     ```
 
 3. **Access the application**:
