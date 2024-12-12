@@ -10,6 +10,8 @@ var (
 	ErrInputTooLarge      = errors.New("input is too large to process")
 )
 
+// ParseDistance converts a string input to an int64 distance value.
+// Returns an error if the input is not a positive integer or is too large.
 func ParseDistance(input string) (int64, error) {
 	distance, err := strconv.ParseInt(input, 10, 64)
 	if err != nil {

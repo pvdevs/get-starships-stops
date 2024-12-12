@@ -12,7 +12,8 @@ var (
 	ErrEmptyConsumables   = errors.New("empty consumables input")
 )
 
-// ParseConsumables converts a consumables string (e.g. "2 years", "6 months") into total hours of operation
+// ParseConsumables converts a consumables string (e.g. "2 years", "6 months")
+// into total hours of operation. Returns an error if the format is invalid.
 func ParseConsumables(input string) (int, error) {
 	if input == "" {
 		return 0, ErrEmptyConsumables
