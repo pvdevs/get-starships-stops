@@ -5,10 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development    # Explicitly use development target
     volumes:
-      - .:/app                # Mount the current directory into the container
-      - /app/tmp              # Temporary volume to avoid caching issues
+      - .:/app              # Mount for hot reloading
+      - /app/tmp            # Temporary volume for air
     ports:
-      - "8080:8080"           # Map port 8080
-    command: ["air"]          # Use Air for live reloading
-    container_name: my-go-docker-air
+      - "8080:8080"
+    command: ["air"]
+    container_name: starships-stops-dev
