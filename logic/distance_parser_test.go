@@ -5,35 +5,73 @@ import (
 	"testing"
 )
 
-func TestParseDistance(t *testing.T) {
-	tests := []struct {
-		name        string // Descriptive name for the test case
-		input       string
-		expected    int64
-		expectedErr error
-	}{
-		// Valid cases
-		{"Valid input: positive integer", "1000000", 1000000, nil},
-		{"Valid input: small positive integer", "50000", 50000, nil},
-		{"Valid input: zero", "0", 0, nil},
+type distanceTestCase struct {
+	name     string
+	input    string
+	expected int64
+	wantErr  error
+}
 
-		// Invalid cases
-		{"Invalid input: negative number", "-1", 0, ErrNotPositiveInteger},
-		{"Invalid input: non-numeric string", "abc", 0, ErrNotPositiveInteger},
-		{"Invalid input: float value", "12.34", 0, ErrNotPositiveInteger},
-		{"Invalid input: overflow value", "100000000000000000000000000", 0, ErrInputTooLarge},
-		{"Invalid input: empty string", "", 0, ErrNotPositiveInteger},
+func TestParseDistance(t *testing.T) {
+	tests := []distanceTestCase{
+		{
+			name:     "Valid input: positive integer",
+			input:    "1000000",
+			expected: 1000000,
+			wantErr:  nil,
+		},
+		{
+			name:     "Valid input: small positive integer",
+			input:    "50000",
+			expected: 50000,
+			wantErr:  nil,
+		},
+		{
+			name:     "Valid input: zero",
+			input:    "0",
+			expected: 0,
+			wantErr:  nil,
+		},
+		{
+			name:     "Invalid input: negative number",
+			input:    "-1",
+			expected: 0,
+			wantErr:  ErrNotPositiveInteger,
+		},
+		{
+			name:     "Invalid input: non-numeric string",
+			input:    "abc",
+			expected: 0,
+			wantErr:  ErrNotPositiveInteger,
+		},
+		{
+			name:     "Invalid input: float value",
+			input:    "12.34",
+			expected: 0,
+			wantErr:  ErrNotPositiveInteger,
+		},
+		{
+			name:     "Invalid input: overflow value",
+			input:    "100000000000000000000000000",
+			expected: 0,
+			wantErr:  ErrInputTooLarge,
+		},
+		{
+			name:     "Invalid input: empty string",
+			input:    "",
+			expected: 0,
+			wantErr:  ErrNotPositiveInteger,
+		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			result, err := ParseDistance(test.input)
-
-			if !errors.Is(err, test.expectedErr) {
-				t.Errorf("expected error %v, got %v for input: %s", test.expectedErr, err, test.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseDistance(tt.input)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("expected error %v, got %v for input: %s", tt.wantErr, err, tt.input)
 			}
-			if result != test.expected {
-				t.Errorf("expected %d, got %d for input: %s", test.expected, result, test.input)
+			if got != tt.expected {
+				t.Errorf("expected %d, got %d for input: %s", tt.expected, got, tt.input)
 			}
 		})
 	}
