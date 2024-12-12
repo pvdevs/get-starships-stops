@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/pvdevs/get-starships-stops/logic"
+	"github.com/pvdevs/get-starships-stops/internal/parser/distance"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	fmt.Print("Enter distance in mega lights (MGLT): ")
 	fmt.Scanln(&input)
 
-	distance, err := logic.ParseDistance(input)
+	distance, err := distance.ParseDistance(input)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
