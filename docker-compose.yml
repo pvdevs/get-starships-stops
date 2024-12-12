@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development    # Explicitly use development target
+      target: development    # Explicitly use development target, as compose will be used for development only
     volumes:
       - .:/app              # Mount for hot reloading
       - /app/tmp            # Temporary volume for air
