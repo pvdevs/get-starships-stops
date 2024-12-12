@@ -5,15 +5,18 @@ import (
 	"testing"
 )
 
-type distanceTestCase struct {
-	name     string
-	input    string
-	expected int64
-	wantErr  error
-}
-
+// TestParseDistance tests the ParseDistance function.
+// It verifies the conversion of string inputs to valid integer distances, including:
+// - Valid inputs like positive integers and zero
+// - Invalid inputs, such as negative numbers, non-numeric strings, floats, and overflow values
 func TestParseDistance(t *testing.T) {
-	tests := []distanceTestCase{
+	// Define test cases using table-driven test pattern
+	tests := []struct {
+		name     string // Description of the test case
+		input    string // Input string to parse
+		expected int64  // Expected result in int64
+		wantErr  error  // Expected error
+	}{
 		{
 			name:     "Valid input: positive integer",
 			input:    "1000000",
@@ -64,12 +67,17 @@ func TestParseDistance(t *testing.T) {
 		},
 	}
 
+	// Run each test case
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseDistance(tt.input)
+
+			// Verify error expectations
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("expected error %v, got %v for input: %s", tt.wantErr, err, tt.input)
 			}
+
+			// Verify result
 			if got != tt.expected {
 				t.Errorf("expected %d, got %d for input: %s", tt.expected, got, tt.input)
 			}

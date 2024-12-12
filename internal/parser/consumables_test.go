@@ -5,12 +5,17 @@ import (
 	"testing"
 )
 
+// TestParseConsumables tests the ParseConsumables function.
+// It verifies the conversion of various consumables strings to hours, including:
+// - Valid input strings with units like "years", "months", "weeks", "days"
+// - Invalid input strings, such as empty strings, wrong formats, or unsupported formats
 func TestParseConsumables(t *testing.T) {
+	// Define test cases using table-driven test pattern
 	tests := []struct {
-		name        string
-		input       string
-		expected    int
-		expectedErr error
+		name        string // Description of the test case
+		input       string // Consumables string to parse
+		expected    int    // Expected result in hours
+		expectedErr error  // Expected error
 	}{
 		{
 			name:        "Valid input: 3 years",
@@ -62,12 +67,17 @@ func TestParseConsumables(t *testing.T) {
 		},
 	}
 
+	// Run each test case
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := ParseConsumables(tt.input)
+
+			// Verify error expectations
 			if !errors.Is(err, tt.expectedErr) {
 				t.Errorf("expected error %v, got %v for input: %s", tt.expectedErr, err, tt.input)
 			}
+
+			// Verify result
 			if result != tt.expected {
 				t.Errorf("expected %d, got %d for input: %s", tt.expected, result, tt.input)
 			}
