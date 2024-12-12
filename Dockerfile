@@ -17,5 +17,5 @@ COPY go.* ./
 RUN go mod download
 COPY . .
 # Build optimized binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o app ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o app ./cmd/app
 CMD ["./app"]
