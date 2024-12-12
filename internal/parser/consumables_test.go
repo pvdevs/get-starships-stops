@@ -2,6 +2,7 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -83,4 +84,36 @@ func TestParseConsumables(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBasicCalculation(t *testing.T) {
+	// Basic example from SWAPI:
+	// X-wing with MGLT: 100, consumables: "1 week"
+	// For distance 1000000
+
+	consumables := "1 week"
+	hours, err := ParseConsumables(consumables)
+	if err != nil {
+		t.Fatalf("ParseConsumables error: %v", err)
+	}
+
+	// Hours in a week: 7 * 24 = 168
+	if hours != 168 {
+		t.Errorf("Expected 168 hours, got %d", hours)
+	}
+
+	// X-wing travels 100 MGLT per hour
+	// So in 168 hours it can travel: 100 * 168 = 16800 MGLT
+
+	mglt := 100
+	maxDistance := mglt * hours // should be 16800
+
+	// For total distance 1000000:
+	distance := 1000000
+	stops := distance / maxDistance // should be ~59.52, rounded to 59
+
+	fmt.Printf("Test calculation:\n")
+	fmt.Printf("Hours: %d\n", hours)
+	fmt.Printf("Max distance: %d\n", maxDistance)
+	fmt.Printf("Stops needed: %d\n", stops)
 }
