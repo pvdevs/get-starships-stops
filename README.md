@@ -10,23 +10,87 @@ A Go-based application to calculate the number of resupply stops required for st
 
 ### **Example Request**
 
-**POST** `/calculate-stops`
+**GET** `/calculate-stops/{distance}`
 
-**Request Body**:
-```json
-{
-  "distance": "1000000"
-}
+**Example URL**:
+```
+http://54.161.58.1:8080/calculate-stops/1000000
 ```
 
 **Response**:
 ```json
 {
-  "distance": 1000000,
-  "results": [
-    { "name": "Millennium Falcon", "stops": 9 },
-    { "name": "Y-wing", "stops": 74 }
-  ]
+    "distance": 1000000,
+    "results": [
+        {
+            "name": "Calamari Cruiser",
+            "stops": 0
+        },
+        {
+            "name": "Executor",
+            "stops": 0
+        },
+        {
+            "name": "Star Destroyer",
+            "stops": 0
+        },
+        {
+            "name": "CR90 corvette",
+            "stops": 1
+        },
+        {
+            "name": "EF76 Nebulon-B escort frigate",
+            "stops": 1
+        },
+        {
+            "name": "Death Star",
+            "stops": 3
+        },
+        {
+            "name": "Millennium Falcon",
+            "stops": 9
+        },
+        {
+            "name": "Rebel transport",
+            "stops": 11
+        },
+        {
+            "name": "Imperial shuttle",
+            "stops": 13
+        },
+        {
+            "name": "Sentinel-class landing craft",
+            "stops": 19
+        },
+        {
+            "name": "Slave 1",
+            "stops": 19
+        },
+        {
+            "name": "A-wing",
+            "stops": 49
+        },
+        {
+            "name": "X-wing",
+            "stops": 59
+        },
+        {
+            "name": "B-wing",
+            "stops": 65
+        },
+        {
+            "name": "Y-wing",
+            "stops": 74
+        },
+        {
+            "name": "TIE Advanced x1",
+            "stops": 79
+        },
+        {
+            "name": "arc-170",
+            "stops": 83
+        }
+    ]
 }
 ```
 
@@ -76,7 +140,7 @@ Ensure you have the following installed:
     ```
 
 3. **Access the application**:
-    - **API Endpoint**: [http://localhost:8080/calculate-stops](http://localhost:8080/calculate-stops)
+    - **API Endpoint**: [http://localhost:8080/calculate-stops/{distance}](http://localhost:8080/calculate-stops/1000000)
 
 ---
 
@@ -93,7 +157,10 @@ Ensure you have the following installed:
     ```
 
 3. **Test the API**:
-    Use tools like [Postman](https://www.postman.com/) or `curl` to send POST requests.
+    - Access the API using a web browser or a tool like `curl`:
+      ```bash
+      curl http://localhost:8080/calculate-stops/1000000
+      ```
 
 ---
 
@@ -148,4 +215,3 @@ go test ./...
 ## 🌟 Conclusion
 
 This application showcases a modular and scalable approach to building APIs in Go, focusing on clean architecture, robust testing, and production readiness. Whether you're calculating starship stops or exploring new possibilities, this project serves as a strong foundation for future enhancements.
-
