@@ -12,11 +12,10 @@ import (
 func NewServer(cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
 
-	// Initialize handlers with configuration
-	handler := handlers.NewHandler(cfg)
+	handler := handlers.NewStopsHandler(cfg)
 
 	// Register routes with middleware
-	mux.HandleFunc("/calculate-stops", middleware.Common(handler.CalculateStops))
+	mux.HandleFunc("/calculate-stops/", middleware.Common(handler.HandleCalculate))
 
 	return &http.Server{
 		Addr:    cfg.Port,

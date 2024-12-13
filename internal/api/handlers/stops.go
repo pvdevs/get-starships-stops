@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/pvdevs/get-starships-stops/internal/api/models"
 	"github.com/pvdevs/get-starships-stops/internal/config"
@@ -12,44 +13,51 @@ import (
 	"github.com/pvdevs/get-starships-stops/internal/service/swapi"
 )
 
-// Handler holds dependencies for all handlers
-type Handler struct {
+// StopsHandler holds dependencies for all handlers
+type StopsHandler struct {
 	calculator service.CalculatorService
 }
 
-// NewHandler creates a new handler with required dependencies
-func NewHandler(cfg *config.Config) *Handler {
+// NewStopsHandler creates a new handler with required dependencies
+func NewStopsHandler(cfg *config.Config) *StopsHandler {
 	client := swapi.NewClient(swapi.ClientConfig{
 		BaseURL: cfg.SWAPIURL,
 	})
-	return &Handler{
+	return &StopsHandler{
 		calculator: service.NewCalculator(client),
 	}
 }
 
-// CalculateStops handles the stop calculation endpoint
-func (h *Handler) CalculateStops(w http.ResponseWriter, r *http.Request) {
+// HandleCalculate handles the stop calculation endpoint
+func (h *StopsHandler) HandleCalculate(w http.ResponseWriter, r *http.Request) {
 	// Method validation
-	if r.Method != http.MethodPost {
-		models.WriteError(w, http.StatusMethodNotAllowed, "Only POST method is allowed")
+	if r.Method != http.MethodGet {
+		models.WriteError(w, http.StatusMethodNotAllowed, "Only GET method is allowed")
 		return
 	}
 
-	// Parse request body
-	var req models.StopsRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		models.WriteError(w, http.StatusBadRequest, "Invalid JSON payload")
+	// Get distance from path parameter
+	// URL format: /calculate-stops/{distance}
+	pathParts := strings.Split(r.URL.Path, "/")
+
+	// If no distance provided, return helpful message
+	if len(pathParts) <= 2 || pathParts[2] == "" {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(models.HelpResponse{
+			Message: "Please provide a distance in MGLT after /calculate-stops/",
+			Example: "/calculate-stops/1000000",
+			Usage:   "GET /calculate-stops/{distance}",
+		})
 		return
 	}
 
-	// Validate request
-	if req.Distance == "" {
-		models.WriteError(w, http.StatusBadRequest, "Distance is required")
+	if len(pathParts) != 3 {
+		models.WriteError(w, http.StatusBadRequest, "Invalid URL format")
 		return
 	}
 
 	// Parse distance
-	distance, err := parser.ParseDistance(req.Distance)
+	distance, err := parser.ParseDistance(pathParts[2])
 	if err != nil {
 		models.WriteError(w, http.StatusBadRequest, err.Error())
 		return

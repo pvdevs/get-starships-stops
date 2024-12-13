@@ -26,3 +26,10 @@ func SortResults(results []Result) {
 		return strings.ToLower(results[i].Name) < strings.ToLower(results[j].Name)
 	})
 }
+
+// HelpResponse represents the help response when no distance is provided
+type HelpResponse struct {
+	Message string `json:"message"`
+	Example string `json:"example"`
+	Usage   string `json:"usage"`
+}
